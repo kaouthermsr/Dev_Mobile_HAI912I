@@ -30,12 +30,17 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  firebase_core:
-  cloud_firestore:
-  firebase_auth:
-  firebase_storage:
-  image_picker:
-  firebase_analytics:
+
+  # Firebase Core et Plugins
+  firebase_core: any
+  cloud_firestore: any
+  firebase_auth: any
+  firebase_storage: any
+  firebase_analytics: any
+
+  # Plugins Additionnels
+  image_picker: any
+  flutter_bloc: ^8.0.1
 
 
 
