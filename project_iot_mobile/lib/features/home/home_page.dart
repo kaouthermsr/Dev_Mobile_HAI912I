@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'temperature_page.dart';
-import 'luminosity_page.dart';
-import 'led_control_page.dart';
-import 'morse_code_page.dart';
-import 'statistics_page.dart';
+import 'package:project_iot_mobile/features/luminosity/seuil_control_page.dart';
+import '../temperature/temperature_page.dart';
+import '../luminosity/luminosity_page.dart';
+import '../LED/led_control_page.dart';
+import '../morse/morse_code_page.dart';
+import '../statistics/statistics_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -47,6 +48,16 @@ class HomePage extends StatelessWidget {
           MaterialPageRoute(builder: (context) => const MorseCodePage()),
         ),
       },
+      {
+        "title": "Contrôle du Seuil",
+        "icon": Icons.contrast_rounded,
+        "color": Colors.pinkAccent,
+        "action": () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const SeuilControlPage()),
+        ),
+      },
+
       {
         "title": "Statistics",
         "icon": Icons.bar_chart,

@@ -1,41 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'log_manager.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class TemperaturePage extends StatefulWidget {
-  const TemperaturePage({Key? key}) : super(key: key);
+class LEDControlPage extends StatefulWidget {
+  const LEDControlPage({Key? key}) : super(key: key);
 
   @override
-  State<TemperaturePage> createState() => _TemperaturePageState();
+  State<LEDControlPage> createState() => _LEDControlPageState();
 }
 
-class _TemperaturePageState extends State<TemperaturePage> {
-  String temperature = "Awaiting...";
+class _LEDControlPageState extends State<LEDControlPage> {
+  String ledStatus = "LED is OFF";
 
-  Future<void> fetchTemperature() async {
-    const apiUrl = "http://172.20.10.3/temperature";
+  Future<void> toggleLED() async {
+    const apiUrl = "http://172.20.10.3/toggle-led";
     try {
       final response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        setState(() {
-          temperature = "${data['temperature']} °C";
+        final status = response.body;
 
-          // Log the data when fetched
-          GlobalLogManager.addLogEntry(
-            "Temperature",
-            temperature,
-          );
+        setState(() {
+          ledStatus = status;
+        });
+
+        // Save data to Firebase
+        FirebaseFirestore.instance.collection('statistics').add({
+          'type': 'LED Control',
+          'value': status,
+          'timestamp': DateTime.now().toString(),
         });
       } else {
         setState(() {
-          temperature = "Error ${response.statusCode}";
+          ledStatus = "Error ${response.statusCode}";
         });
       }
     } catch (e) {
       setState(() {
-        temperature = "Connection Error";
+        ledStatus = "Connection Error";
       });
     }
   }
@@ -45,7 +46,7 @@ class _TemperaturePageState extends State<TemperaturePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          "Temperature",
+          "LED Control",
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
@@ -79,15 +80,15 @@ class _TemperaturePageState extends State<TemperaturePage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(
-                      Icons.thermostat_outlined,
+                      Icons.light_mode,
                       size: 100,
-                      color: Colors.redAccent,
+                      color: Colors.blueAccent,
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      temperature,
+                      ledStatus,
                       style: const TextStyle(
-                        fontSize: 50,
+                        fontSize: 30,
                         fontWeight: FontWeight.bold,
                         color: Colors.black87,
                       ),
@@ -102,15 +103,15 @@ class _TemperaturePageState extends State<TemperaturePage> {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 32.0, vertical: 16.0),
                 ),
-                icon: const Icon(Icons.refresh, size: 28),
+                icon: const Icon(Icons.power_settings_new, size: 28),
                 label: const Text(
-                  "Get Temperature",
+                  "Toggle LED",
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                onPressed: fetchTemperature,
+                onPressed: toggleLED,
               ),
             ],
           ),

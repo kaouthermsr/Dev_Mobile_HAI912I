@@ -1,42 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'statistics_page.dart';
-import 'log_manager.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class LuminosityPage extends StatefulWidget {
-  const LuminosityPage({Key? key}) : super(key: key);
+class TemperaturePage extends StatefulWidget {
+  const TemperaturePage({Key? key}) : super(key: key);
 
   @override
-  State<LuminosityPage> createState() => _LuminosityPageState();
+  State<TemperaturePage> createState() => _TemperaturePageState();
 }
 
-class _LuminosityPageState extends State<LuminosityPage> {
-  String luminosity = "Awaiting...";
+class _TemperaturePageState extends State<TemperaturePage> {
+  String temperature = "Awaiting...";
 
-  Future<void> fetchLuminosity() async {
-    const apiUrl = "http://172.20.10.3/luminosite";
+  Future<void> fetchTemperature() async {
+    const apiUrl = "http://172.20.10.3/temperature";
     try {
       final response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        setState(() {
-          luminosity = "${data['luminosite']} lux";
+        final tempValue = "${data['temperature']} °C";
 
-          // Log the data after fetching
-          GlobalLogManager.addLogEntry(
-            "Luminosity",
-            luminosity,
-          );
+        setState(() {
+          temperature = tempValue;
+        });
+
+        // Save data to Firebase
+        FirebaseFirestore.instance.collection('statistics').add({
+          'type': 'Temperature',
+          'value': tempValue,
+          'timestamp': DateTime.now().toString(),
         });
       } else {
         setState(() {
-          luminosity = "Error ${response.statusCode}";
+          temperature = "Error ${response.statusCode}";
         });
       }
     } catch (e) {
       setState(() {
-        luminosity = "Connection Error";
+        temperature = "Connection Error";
       });
     }
   }
@@ -46,7 +48,7 @@ class _LuminosityPageState extends State<LuminosityPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          "Luminosity",
+          "Temperature",
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
@@ -80,13 +82,13 @@ class _LuminosityPageState extends State<LuminosityPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(
-                      Icons.lightbulb_outline,
+                      Icons.thermostat_outlined,
                       size: 100,
-                      color: Colors.yellowAccent,
+                      color: Colors.redAccent,
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      luminosity,
+                      temperature,
                       style: const TextStyle(
                         fontSize: 50,
                         fontWeight: FontWeight.bold,
@@ -105,13 +107,13 @@ class _LuminosityPageState extends State<LuminosityPage> {
                 ),
                 icon: const Icon(Icons.refresh, size: 28),
                 label: const Text(
-                  "Get Luminosity",
+                  "Get Temperature",
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                onPressed: fetchLuminosity,
+                onPressed: fetchTemperature,
               ),
             ],
           ),
